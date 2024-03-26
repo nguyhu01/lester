@@ -9,8 +9,9 @@ class DataTransformer:
         self.label_encoder = LabelEncoder()
         self.onehot_encoder = OneHotEncoder(handle_unknown='ignore')
         self.scaler = StandardScaler()
+        self.target_encoder = ce.TargetEncoder()
 
-    def encode_categorical_variables(self, data, columns, encoding='label'):
+    def encode_categorical_variables(self, data, columns, encoding='label', target_column=None):
         if encoding == 'label':
             for column in columns:
                 data[column] = self.label_encoder.fit_transform(data[column])
@@ -21,8 +22,10 @@ class DataTransformer:
             )
             data = ct.fit_transform(data)
         elif encoding == 'target':
-            encoder = ce.TargetEncoder(cols=columns)
-            data = encoder.fit_transform(data, data[target_column])
+            if target_column is None:
+                raise ValueError("Target column must be provided for target encoding.")
+            else:
+                data[columns] = self.target_encoder.fit_transform(data[columns], data[target_column])
         else:
             raise ValueError(f"Unknown encoding: {encoding}")
         return data
